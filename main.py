@@ -1,32 +1,64 @@
 import os
 import shutil
+import tkinter as tk
+from tkinter import filedialog
 
-# Define the source directory and the destination directories for each file type
-source_dir = "/path/to/source/directory"
-destination_dirs = {
-    ".jpg": "/path/to/Images",
-    ".jpeg": "/path/to/Images",
-    ".png": "/path/to/Images",
-    ".gif": "/path/to/Images",
-    ".doc": "/path/to/Documents",
-    ".docx": "/path/to/Documents",
-    ".pdf": "/path/to/Documents",
-    ".txt": "/path/to/Documents",
-    ".csv": "/path/to/Documents"
-}
-
-# Walk through all the files in the source directory
-for dirpath, dirnames, filenames in os.walk(source_dir):
-    for filename in filenames:
-        # Get the file extension and the full path of the file
-        extension = os.path.splitext(filename)[-1].lower()
-        filepath = os.path.join(dirpath, filename)
+# Define the GUI interface
+class FileOrganizerGUI:
+    def __init__(self, master):
+        self.master = master
+        master.title("File Organizer")
         
-        # Check if the file extension is in the destination directories dictionary
-        if extension in destination_dirs:
-            # If the destination directory doesn't exist, create it
-            if not os.path.exists(destination_dirs[extension]):
-                os.makedirs(destination_dirs[extension])
+        # Create the source directory button
+        self.source_button = tk.Button(master, text="Select Source Directory", command=self.choose_source_directory)
+        self.source_button.pack(padx=10, pady=10)
+        
+        # Create the destination directory button
+        self.destination_button = tk.Button(master, text="Select Destination Directory", command=self.choose_destination_directory)
+        self.destination_button.pack(padx=10, pady=10)
+        
+        # Create the organize files button
+        self.organize_button = tk.Button(master, text="Organize Files", command=self.organize_files)
+        self.organize_button.pack(padx=10, pady=10)
+        
+        # Set the source and destination directories to None
+        self.source_dir = None
+        self.destination_dir = None
+    
+    def choose_source_directory(self):
+        # Use the file explorer to select the source directory
+        self.source_dir = filedialog.askdirectory()
+        print(f"Selected source directory: {self.source_dir}")
+    
+    def choose_destination_directory(self):
+        # Use the file explorer to select the destination directory
+        self.destination_dir = filedialog.askdirectory()
+        print(f"Selected destination directory: {self.destination_dir}")
+    
+    def organize_files(self):
+        if not self.source_dir or not self.destination_dir:
+            # If the source or destination directory is not set, show an error message
+            tk.messagebox.showerror("Error", "Please select both the source and destination directories")
+        else:
+            # Walk through all the files in the source directory
+            for dirpath, dirnames, filenames in os.walk(self.source_dir):
+                for filename in filenames:
+                    # Get the full path of the file
+                    filepath = os.path.join(dirpath, filename)
+
+                    # Get the file extension and create a folder with the same name as the extension
+                    extension = os.path.splitext(filename)[-1].lower()
+                    folder = os.path.join(self.destination_dir, extension[1:])
+                    if not os.path.exists(folder):
+                        os.makedirs(folder)
+
+                    # Move the file to the destination folder
+                    shutil.move(filepath, folder)
             
-            # Move the file to the destination directory
-            shutil.move(filepath, destination_dirs[extension])
+            # Show a success message
+            tk.messagebox.showinfo("Success", "Files organized successfully")
+
+# Create the main application window
+root = tk.Tk()
+app = FileOrganizerGUI(root)
+root.mainloop()
